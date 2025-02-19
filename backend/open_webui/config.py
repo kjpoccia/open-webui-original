@@ -2799,45 +2799,28 @@ WEB_SEARCH_DOMAIN_FILTER_LIST = PersistentConfig(
     ],
 )
 
-WEB_SEARCH_CONCURRENT_REQUESTS = PersistentConfig(
-    "WEB_SEARCH_CONCURRENT_REQUESTS",
-    "rag.web.search.concurrent_requests",
-    int(os.getenv("WEB_SEARCH_CONCURRENT_REQUESTS", "10")),
+# You can provide a list of the only websites that should be fetched
+RAG_WEB_SEARCH_ALLOWED_DOMAIN_LIST = PersistentConfig(
+    "RAG_WEB_SEARCH_ALLOWED_DOMAIN_LIST",
+    "rag.web.search.domain.allowed",
+    [
+        # "wikipedia.com",
+        # "wikimedia.org",
+        # "wikidata.org",
+    ],
 )
 
-
-WEB_LOADER_ENGINE = PersistentConfig(
-    "WEB_LOADER_ENGINE",
-    "rag.web.loader.engine",
-    os.environ.get("WEB_LOADER_ENGINE", ""),
+# You can provide a list of the only websites that should NOT be fetched
+RAG_WEB_SEARCH_BLOCKED_DOMAIN_LIST = PersistentConfig(
+    "RAG_WEB_SEARCH_BLOCKED_DOMAIN_LIST",
+    "rag.web.search.domain.blocked",
+    [
+        # "wikipedia.com",
+        # "wikimedia.org",
+        # "wikidata.org",
+    ],
 )
 
-
-WEB_LOADER_CONCURRENT_REQUESTS = PersistentConfig(
-    "WEB_LOADER_CONCURRENT_REQUESTS",
-    "rag.web.loader.concurrent_requests",
-    int(os.getenv("WEB_LOADER_CONCURRENT_REQUESTS", "10")),
-)
-
-
-ENABLE_WEB_LOADER_SSL_VERIFICATION = PersistentConfig(
-    "ENABLE_WEB_LOADER_SSL_VERIFICATION",
-    "rag.web.loader.ssl_verification",
-    os.environ.get("ENABLE_WEB_LOADER_SSL_VERIFICATION", "True").lower() == "true",
-)
-
-WEB_SEARCH_TRUST_ENV = PersistentConfig(
-    "WEB_SEARCH_TRUST_ENV",
-    "rag.web.search.trust_env",
-    os.getenv("WEB_SEARCH_TRUST_ENV", "False").lower() == "true",
-)
-
-
-OLLAMA_CLOUD_WEB_SEARCH_API_KEY = PersistentConfig(
-    "OLLAMA_CLOUD_WEB_SEARCH_API_KEY",
-    "rag.web.search.ollama_cloud_api_key",
-    os.getenv("OLLAMA_CLOUD_API_KEY", ""),
-)
 
 SEARXNG_QUERY_URL = PersistentConfig(
     "SEARXNG_QUERY_URL",

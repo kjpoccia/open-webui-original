@@ -45,6 +45,17 @@
 		// Convert domain filter string to array before sending
 		if (webConfig.WEB_SEARCH_DOMAIN_FILTER_LIST) {
 			webConfig.WEB_SEARCH_DOMAIN_FILTER_LIST = webConfig.WEB_SEARCH_DOMAIN_FILTER_LIST.split(',')
+		if (webConfig.search.domains_allow) {
+			webConfig.search.domains_allow = webConfig.search.domains_allow
+				.split(',')
+				.map((domain) => domain.trim())
+				.filter((domain) => domain.length > 0);
+		} else {
+			webConfig.search.domains_allow = [];
+		}
+		if (webConfig.search.domains_block) {
+			webConfig.search.domains_block = webConfig.search.domains_block
+				.split(',')
 				.map((domain) => domain.trim())
 				.filter((domain) => domain.length > 0);
 		} else {
@@ -58,6 +69,7 @@
 				.filter((lang) => lang.length > 0);
 		} else {
 			webConfig.YOUTUBE_LOADER_LANGUAGE = [];
+			webConfig.search.domains_block = [];
 		}
 
 		const res = await updateRAGConfig(localStorage.token, {
@@ -66,6 +78,8 @@
 
 		webConfig.WEB_SEARCH_DOMAIN_FILTER_LIST = webConfig.WEB_SEARCH_DOMAIN_FILTER_LIST.join(',');
 		webConfig.YOUTUBE_LOADER_LANGUAGE = webConfig.YOUTUBE_LOADER_LANGUAGE.join(',');
+		webConfig.search.domains_allow = webConfig.search.domains_allow.join(', ');
+		webConfig.search.domains_block = webConfig.search.domains_block.join(', ');
 	};
 
 	onMount(async () => {
@@ -77,6 +91,11 @@
 			// Convert array back to comma-separated string for display
 			if (webConfig?.WEB_SEARCH_DOMAIN_FILTER_LIST) {
 				webConfig.WEB_SEARCH_DOMAIN_FILTER_LIST = webConfig.WEB_SEARCH_DOMAIN_FILTER_LIST.join(',');
+			if (webConfig?.search?.domains_allow) {
+				webConfig.search.domains_allow = webConfig.search.domains_allow.join(', ');
+			}
+			if (webConfig?.search?.domains_block) {
+				webConfig.search.domains_block = webConfig.search.domains_block.join(', ');
 			}
 
 			webConfig.YOUTUBE_LOADER_LANGUAGE = webConfig.YOUTUBE_LOADER_LANGUAGE.join(',');
@@ -660,6 +679,10 @@
 							<div class="  text-xs font-medium mb-1">
 								{$i18n.t('Domain Filter List')}
 							</div>
+					<div class="mt-2">
+						<div class=" self-center text-xs font-medium mb-1">
+							{$i18n.t('Allowed Domain Filter List')}
+						</div>
 
 							<input
 								class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
@@ -691,6 +714,30 @@
 							</Tooltip>
 						</div>
 					</div>
+						<input
+							class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
+							placeholder={$i18n.t(
+								'Enter domains separated by commas (e.g., example.com,site.org)'
+							)}
+							bind:value={webConfig.search.domains_allow}
+						/>
+					</div>
+
+					<div class="mt-2">
+						<div class=" self-center text-xs font-medium mb-1">
+							{$i18n.t('Blocked Domain Filter List')}
+						</div>
+
+						<input
+							class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-none"
+							placeholder={$i18n.t(
+								'Enter domains separated by commas (e.g., example.com,site.org)'
+							)}
+							bind:value={webConfig.search.domains_block}
+						/>
+					</div>
+				{/if}
+			</div>
 
 					<div class="  mb-2.5 flex w-full justify-between">
 						<div class=" self-center text-xs font-medium">
