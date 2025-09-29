@@ -259,27 +259,30 @@ async def chat_completion_tools_handler(
                         tool_function = tool["callable"]
                         status_messages = tool.get("status_messages", {})
                         if status_messages.get("executing"):
-                            await event_emitter({
-                                "type": "status",
-                                "data": {
-                                    "action": "tool_execution",
-                                    "description": status_messages["executing"],
-                                    "tool_name": tool_function_name,
-                                    "done": False,
-                                },
-                            })
+                            await event_emitter(
+                                {
+                                    "type": "status",
+                                    "data": {
+                                        "action": "tool_executing",
+                                        "description": status_messages.get("executing"),
+                                        "done": False,
+                                    },
+                                }
+                            )
                         tool_result = await tool_function(**tool_function_params)
-
+                        
                         if status_messages.get("completed"):
-                            await event_emitter({
-                                "type": "status",
-                                "data": {
-                                    "action": "tool_execution",
-                                    "description": status_messages["completed"],
-                                    "tool_name": tool_function_name,
-                                    "done": True,
-                                },
-                            })
+                            await event_emitter(
+                                {
+                                    "type": "status",
+                                    "data": {
+                                        "action": "tool_completed",
+                                        "description": status_messages.get("completed"),
+                                        "done": True,
+                                    },
+                                }
+                            )
+
                         else:
                             # If the completed status message is not set, hide the status message upon completion
                             await event_emitter({

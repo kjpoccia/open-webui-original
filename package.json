@@ -5,6 +5,12 @@
 	"scripts": {
 		"dev": "npm run pyodide:fetch && vite dev --host",
 		"dev:5050": "npm run pyodide:fetch && vite dev --port 5050",
+		"dev:frontend": "./scripts/dev-frontend.sh",
+		"dev:backend": "./scripts/dev-local.sh",
+		"dev:docker-backend": "./scripts/dev-docker-backend.sh",
+		"dev:full": "./scripts/dev-simple.sh",
+		"dev:hybrid": "npm run pyodide:fetch && vite dev --host",
+		"setup:dev": "./dev-setup.sh",
 		"build": "npm run pyodide:fetch && vite build",
 		"build:watch": "npm run pyodide:fetch && vite build --watch",
 		"preview": "vite preview",
@@ -139,6 +145,7 @@
 		"uuid": "^9.0.1",
 		"vite-plugin-static-copy": "^2.2.0",
 		"y-prosemirror": "^1.3.7",
+		"y-protocols": "^1.0.6",
 		"yaml": "^2.7.1",
 		"yjs": "^13.6.27"
 	},

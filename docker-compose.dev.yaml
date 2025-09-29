@@ -1,0 +1,48 @@
+services:
+  # Disable ollama service by setting scale to 0
+  ollama:
+    image: ollama/ollama:0.11.8
+    scale: 0
+    
+  open-webui:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      args:
+        NODE_OPTIONS: "--max-old-space-size=6144"
+      shm_size: '2gb'
+    volumes:
+      # Mount the entire backend directory for hot reloading
+      - ./backend:/app/backend:rw
+      # Mount the entire project root to preserve git repository
+      - .:/app/project_root:rw
+      # Mount custom CSS if it exists
+      - ./custom.css:/app/build/static/custom.css:ro
+    environment:
+      - OLLAMA_BASE_URL=
+      - WEBUI_SECRET_KEY=your-secret-key-for-oauth-sessions
+      # Custom branding configuration
+      - WEBUI_NAME=Expedient AI
+      - WEBUI_BANNERS=[{"id":"expedient-welcome","type":"info","title":"Welcome to Expedient AI CTRL","content":"Your enterprise AI toolbox powered by Expedient AI CTRL","dismissible":true,"timestamp":1693276800}]
+      # Development specific environment variables
+      - ENV=dev
+      - CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+    env_file:
+      - .env
+    ports:
+      # Expose backend port for frontend to connect
+      - "8080:8080"
+    networks:
+      - expnet
+    # Keep container running for development
+    stdin_open: true
+    tty: true
+
+volumes:
+  open-webui: {}
+  pipelines-data: {}
+
+networks:
+  expnet:
+    name: expnet
+    external: true

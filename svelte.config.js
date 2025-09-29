@@ -39,6 +39,11 @@ const config = {
 		}
 	},
 	vitePlugin: {
+		// Enable hot reload optimizations
+		hot: {
+			injectCss: false,  // Changed to false to avoid conflict
+			preserveLocalState: true
+		},
 		// inspector: {
 		// 	toggleKeyCombo: 'meta-shift', // Key combination to open the inspector
 		// 	holdMode: false, // Enable or disable hold mode
