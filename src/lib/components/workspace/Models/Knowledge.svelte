@@ -4,6 +4,7 @@
 
 	import Selector from './Knowledge/Selector.svelte';
 	import FileItem from '$lib/components/common/FileItem.svelte';
+	import AttachWebpageModal from '$lib/components/chat/MessageInput/AttachWebpageModal.svelte';
 
 	import { getKnowledgeBases } from '$lib/apis/knowledge';
 	import { uploadFile } from '$lib/apis/files';
@@ -19,6 +20,30 @@
 
 	let filesInputElement = null;
 	let inputFiles = [];
+
+	let showAttachWebpageModal = false;
+
+	const handleAttachWebSubmit = async (e) => {
+		const { type, data } = e;
+
+		if (type === 'web' || type === 'youtube') {
+			const url = data;
+			const item = {
+				type: 'url',
+				name: url,
+				url,
+				status: 'attached',
+				error: ''
+			};
+
+			try {
+				selectedItems = [...selectedItems, item];
+			} catch (err) {
+				selectedItems = selectedItems.filter((f) => f.name !== url);
+				toast.error(`${err}`);
+			}
+		}
+	};
 
 	const uploadFileHandler = async (file, fullContext: boolean = false) => {
 		if ($user?.role !== 'admin' && !($user?.permissions?.chat?.file_upload ?? true)) {
@@ -224,8 +249,19 @@
 						}}>{$i18n.t('Upload Files')}</button
 					>
 				{/if}
+
+				<button
+					class=" px-3.5 py-1.5 font-medium hover:bg-black/5 dark:hover:bg-white/5 outline outline-1 outline-gray-100 dark:outline-gray-850 rounded-3xl"
+					type="button"
+					on:click={() => {
+						showAttachWebpageModal = true;
+					}}>{$i18n.t('Attach Webpage')}</button
+				>
 			</div>
 		{/if}
 		<!-- {knowledge} -->
 	</div>
 </div>
+
+<AttachWebpageModal bind:show={showAttachWebpageModal} onSubmit={handleAttachWebSubmit} />
+
