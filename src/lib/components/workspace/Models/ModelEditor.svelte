@@ -49,6 +49,23 @@
 	let inheritLoading = false;
 	let inheritEnabled = true;
 
+	const normalizeParamsForEditor = (srcParams: any) => {
+		if (!srcParams) return {};
+		const srcStop = srcParams?.stop;
+		let stopStr: string | null = null;
+		if (Array.isArray(srcStop)) {
+			stopStr = srcStop.join(',');
+		} else if (typeof srcStop === 'string') {
+			stopStr = srcStop;
+		}
+
+		const { system: _omitSystem, stop: _omitStop, ...rest } = srcParams;
+		const cleaned = Object.fromEntries(
+			Object.entries(rest).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+		);
+		return { ...cleaned, ...(stopStr !== null ? { stop: stopStr } : {}) };
+	};
+
 	// ///////////
 	// model
 	// ///////////
@@ -148,10 +165,11 @@
 			return;
 		}
 
-		info.params = { ...info.params, ...params };
+		info.params = { ...params };
 
 		info.access_control = accessControl;
 		info.meta.capabilities = capabilities;
+		info.meta.inheritEnabled = inheritEnabled;
 
 		if (enableDescription) {
 			info.meta.description = info.meta.description.trim() === '' ? null : info.meta.description;
@@ -243,36 +261,26 @@
 				}
 			}
 
-			let copiedParams = false;
-			let copiedDefaultFeatures = false;
+			let inheritedSettings = false;
 
 			if (overlay) {
 				const srcParams = overlay?.params ?? null;
 				if (srcParams) {
-					// Apply advanced params only (exclude system)
-					const srcStop = srcParams?.stop;
-					let stopStr = null;
-					if (Array.isArray(srcStop)) {
-						stopStr = srcStop.join(',');
-					} else if (typeof srcStop === 'string') {
-						stopStr = srcStop;
-					}
-
-					const { system: _omittedSystem, stop: _omittedStop, ...restParams } = srcParams;
-					const cleanedParams = Object.fromEntries(
-						Object.entries(restParams).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
-					);
-					params = { ...cleanedParams, ...(stopStr !== null ? { stop: stopStr } : {}) };
-					copiedParams = true;
+					params = normalizeParamsForEditor(srcParams);
+					inheritedSettings = true;
 				}
 
 				const srcMeta = overlay?.meta ?? null;
 				if (srcMeta) {
 					info.meta = info.meta || {};
+					if (srcMeta.capabilities !== undefined) {
+						capabilities = { ...capabilities, ...(srcMeta.capabilities ?? {}) };
+						inheritedSettings = true;
+					}
 					if (srcMeta.defaultFeatureIds !== undefined) {
 						info.meta.defaultFeatureIds = srcMeta.defaultFeatureIds ?? [];
 						defaultFeatureIds = info.meta.defaultFeatureIds ?? [];
-						copiedDefaultFeatures = true;
+						inheritedSettings = true;
 					}
 				}
 			} else {
@@ -283,16 +291,20 @@
 					info.meta = info.meta || {};
 					info.meta.defaultFeatureIds = srcMeta.defaultFeatureIds ?? [];
 					defaultFeatureIds = info.meta.defaultFeatureIds ?? [];
-					copiedDefaultFeatures = true;
+					inheritedSettings = true;
+				}
+				if (srcMeta && srcMeta.capabilities !== undefined) {
+					// Copy capabilities from frontend metadata as a fallback
+					capabilities = { ...capabilities, ...(srcMeta.capabilities ?? {}) };
+					inheritedSettings = true;
 				}
 			}
 
-			if (copiedParams && copiedDefaultFeatures) {
-				toast.success($i18n.t('Inherited advanced params and default features'));
-			} else if (copiedParams) {
-				toast.success($i18n.t('Inherited advanced params'));
-			} else if (copiedDefaultFeatures) {
-				toast.success($i18n.t('Inherited default features'));
+			// Enforce usage semantics based on base model ownership
+			addUsage(info.base_model_id);
+
+			if (inheritedSettings) {
+				toast.success($i18n.t('Inherited settings from base model'));
 			} else {
 				toast.error($i18n.t('No inheritable settings found for selected base model'));
 			}
@@ -339,12 +351,7 @@
 
 			system = model?.params?.system ?? '';
 
-			params = { ...params, ...model?.params };
-			params.stop = params?.stop
-				? (typeof params.stop === 'string' ? params.stop.split(',') : (params?.stop ?? [])).join(
-						','
-					)
-				: null;
+			params = normalizeParamsForEditor(model?.params ?? {});
 
 			knowledge = (model?.meta?.knowledge ?? []).map((item) => {
 				if (item?.collection_name && item?.type !== 'file') {
@@ -372,6 +379,10 @@
 
 			capabilities = { ...capabilities, ...(model?.meta?.capabilities ?? {}) };
 			defaultFeatureIds = model?.meta?.defaultFeatureIds ?? [];
+
+			if (model?.meta && 'inheritEnabled' in model.meta) {
+				inheritEnabled = !!model.meta.inheritEnabled;
+			}
 
 			if ('access_control' in model) {
 				accessControl = model.access_control;
